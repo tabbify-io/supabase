@@ -51,6 +51,11 @@ CMD ["pnpm", "dev:studio"]
 # Compile Next.js
 FROM dev AS builder
 
+# next build inlines the base path into the bundle, so the value must reach the stage
+# that runs the build. Setting it on the final image is too late.
+ARG NEXT_PUBLIC_BASE_PATH=""
+ENV NEXT_PUBLIC_BASE_PATH=$NEXT_PUBLIC_BASE_PATH
+
 RUN pnpm --filter studio exec next build
 
 # Copy only compiled code and dependencies

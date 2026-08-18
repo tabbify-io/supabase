@@ -1,0 +1,15 @@
+[app]
+name = "studio"
+
+[build]
+kind = "docker"
+
+[runtime]
+memory_mb = 1024
+vcpus = 1
+
+[[runtime.ports]]
+port = 3000
+protocol = "http"
+expose = "public"
+primary = true

@@ -125,11 +125,20 @@ function getAssetPrefix() {
   return `${SUPABASE_ASSETS_URL}/${process.env.SITE_NAME}/${process.env.VERCEL_GIT_COMMIT_SHA.substring(0, 12)}`
 }
 
+// Next.js rejects a basePath with a trailing slash, and the platform passes the app
+// prefix as "/app/<uuid>/". Normalise the variable itself, not just the config field:
+// client references to NEXT_PUBLIC_BASE_PATH are inlined from this same environment
+// at build time. Guarded so an unset variable stays unset.
+if (process.env.NEXT_PUBLIC_BASE_PATH) {
+  process.env.NEXT_PUBLIC_BASE_PATH = process.env.NEXT_PUBLIC_BASE_PATH.replace(/\/+$/, '')
+}
+const BASE_PATH = process.env.NEXT_PUBLIC_BASE_PATH || ''
+
 /**
  * @type {import('next').NextConfig}
  */
 const nextConfig = {
-  basePath: process.env.NEXT_PUBLIC_BASE_PATH,
+  basePath: BASE_PATH,
   assetPrefix: getAssetPrefix(),
   output: 'standalone',
   experimental: {
