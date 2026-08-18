@@ -77,6 +77,9 @@ export type QueryEditorProps = {
   roleImpersonationState?: RoleImpersonationController
   display?: QueryDisplay
   toolbarActions?: ReactNode
+  className?: string
+  /** Disables the toolbar and editor run actions (e.g. while a confirm footer is shown). */
+  isRunDisabled?: boolean
   onTitleChange: (title: string) => void
   onSqlChange: (sql: string) => void
   onSqlCommit?: (sql: string) => void
@@ -84,6 +87,7 @@ export type QueryEditorProps = {
   onResultChange: (result: QueryResult) => void
   onRowLimitChange?: (val: number) => void
   onDisplayChange?: (display: QueryDisplay) => void
+  onRun?: () => void
 }
 
 /**
@@ -100,6 +104,8 @@ export const QueryEditor = ({
   roleImpersonationState,
   display,
   toolbarActions,
+  className,
+  isRunDisabled = false,
   onTitleChange,
   onSqlChange,
   onSqlCommit,
@@ -107,6 +113,7 @@ export const QueryEditor = ({
   onResultChange,
   onRowLimitChange,
   onDisplayChange,
+  onRun,
 }: QueryEditorProps) => {
   const sql = query.uncheckedSql
   const sqlRef = useLatest<string>(sql)
@@ -155,8 +162,9 @@ export const QueryEditor = ({
    * Postgres SQL cannot reach the analytics wire or vice versa.
    */
   const handleRunQuery = (rawSql: string = sql) => {
-    if (!project || isBusy || rawSql.trim().length === 0) return
+    if (!project || isBusy || isRunDisabled || rawSql.trim().length === 0) return
 
+    onRun?.()
     onSqlCommit?.(rawSql)
 
     if (query._tag === 'logs') {
@@ -203,7 +211,7 @@ export const QueryEditor = ({
   const Shell = variant === 'viewport' ? ExplorerQueryViewport : ExplorerQuery
 
   return (
-    <Shell className={variant === 'embedded' ? 'mx-auto max-w-4xl' : undefined}>
+    <Shell className={cn(variant === 'embedded' && 'mx-auto max-w-4xl', className)}>
       <ExplorerToolbar>
         <ExplorerToolbarIcon>
           <CodeSquare size={14} />
@@ -238,7 +246,7 @@ export const QueryEditor = ({
             loading={isExecuting || isLoadingProject}
             icon={<Play />}
             tooltip="Run query"
-            disabled={isLoadingProject || isExecuting || sql.trim().length === 0}
+            disabled={isLoadingProject || isExecuting || isRunDisabled || sql.trim().length === 0}
             onClick={() => handleRunQuery()}
           >
             Run
@@ -257,7 +265,7 @@ export const QueryEditor = ({
             placeholder="select * from your_table limit 100;"
             placeholderClassName="top-[13px]"
             className={variant === 'embedded' ? 'h-32' : undefined}
-            actions={{ runQuery: { enabled: true, callback: handleRunQuery } }}
+            actions={{ runQuery: { enabled: !isRunDisabled, callback: handleRunQuery } }}
             options={{ minimap: { enabled: false }, padding: { top: 8 } }}
             onInputChange={(value) => onSqlChange(value ?? '')}
             onMount={(editor) => {
