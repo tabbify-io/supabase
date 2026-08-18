@@ -62,41 +62,39 @@ export const QueryResultChart = ({ chart, result }: QueryResultChartProps) => {
   }
 
   return (
-    <Chart>
-      <ChartCard className="rounded-none border-0">
-        <ChartContent>
-          <div className="h-40">
-            {type === 'bar' && (
-              <ChartBar
-                isFullHeight
-                xKey={x_column}
-                dataKey={y_columns[0]}
-                showXAxis={show_labels}
-                showYAxis={show_labels}
-                data={resultToRender}
-                YAxisProps={{
-                  scale: scale === 'log' ? 'log' : 'auto',
-                  domain: scale === 'log' ? [1, 'auto'] : undefined,
-                  tickFormatter: scale === 'log' ? formatLogTick : undefined,
-                }}
-              />
-            )}
-            {type === 'line' && (
-              <ChartLine
-                isFullHeight
-                xKey={x_column}
-                dataKey={y_columns[0]}
-                showXAxis={show_labels}
-                showYAxis={show_labels}
-                data={resultToRender}
-                YAxisProps={{
-                  scale: scale === 'log' ? 'log' : 'auto',
-                  domain: scale === 'log' ? [1, 'auto'] : undefined,
-                  tickFormatter: scale === 'log' ? formatLogTick : undefined,
-                }}
-              />
-            )}
-          </div>
+    <Chart className="flex h-full min-h-0 flex-col">
+      <ChartCard className="flex h-full min-h-0 flex-col rounded-none border-0">
+        <ChartContent className="flex h-full min-h-0 flex-1 flex-col">
+          {type === 'bar' && (
+            <ChartBar
+              isFullHeight
+              xKey={x_column}
+              dataKey={y_columns[0]}
+              showXAxis={show_labels}
+              showYAxis={show_labels}
+              data={resultToRender}
+              YAxisProps={{
+                scale: scale === 'log' ? 'log' : 'auto',
+                domain: scale === 'log' ? [1, 'auto'] : undefined,
+                tickFormatter: scale === 'log' ? formatLogTick : undefined,
+              }}
+            />
+          )}
+          {type === 'line' && (
+            <ChartLine
+              isFullHeight
+              xKey={x_column}
+              dataKey={y_columns[0]}
+              showXAxis={show_labels}
+              showYAxis={show_labels}
+              data={resultToRender}
+              YAxisProps={{
+                scale: scale === 'log' ? 'log' : 'auto',
+                domain: scale === 'log' ? [1, 'auto'] : undefined,
+                tickFormatter: scale === 'log' ? formatLogTick : undefined,
+              }}
+            />
+          )}
         </ChartContent>
       </ChartCard>
     </Chart>
