@@ -3,6 +3,8 @@ name = "studio"
 
 [build]
 kind = "docker"
+context = "."
+dockerfile = "apps/studio/Dockerfile"
 
 [runtime]
 memory_mb = 1024
