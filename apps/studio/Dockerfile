@@ -56,6 +56,16 @@ FROM dev AS builder
 ARG NEXT_PUBLIC_BASE_PATH=""
 ENV NEXT_PUBLIC_BASE_PATH=$NEXT_PUBLIC_BASE_PATH
 
+# Every address the BROWSER will use is inlined here too, for the same reason:
+# `next build` bakes `NEXT_PUBLIC_*` into the bundle, and no runtime value can
+# move a URL the browser has already downloaded. An arg the stage does not
+# declare is dropped SILENTLY by docker — which is how these kept their
+# `localhost` defaults from `.env` while the platform was passing the real ones.
+ARG NEXT_PUBLIC_SITE_URL=""
+ENV NEXT_PUBLIC_SITE_URL=$NEXT_PUBLIC_SITE_URL
+ARG NEXT_PUBLIC_GOTRUE_URL=""
+ENV NEXT_PUBLIC_GOTRUE_URL=$NEXT_PUBLIC_GOTRUE_URL
+
 RUN pnpm --filter studio exec next build
 
 # Copy only compiled code and dependencies
