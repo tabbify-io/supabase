@@ -141,6 +141,14 @@ const nextConfig = {
   basePath: BASE_PATH,
   assetPrefix: getAssetPrefix(),
   output: 'standalone',
+  // styled-jsx resolves from the workspace-root pnpm store, and the standalone
+  // file tracer carries its entry stub (`index.js`, a bare require of
+  // './dist/index') without the dist/ directory behind it — so every page
+  // render dies at require time while /api/* routes stay green. Name the whole
+  // package explicitly; the globs are relative to this app directory.
+  outputFileTracingIncludes: {
+    '/**': ['../../node_modules/.pnpm/styled-jsx@*/node_modules/styled-jsx/**'],
+  },
   experimental: {
     webpackBuildWorker: true,
   },
