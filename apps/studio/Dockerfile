@@ -73,11 +73,14 @@ RUN pnpm --filter studio exec next build
 # survive the config composition), so every page render died MODULE_NOT_FOUND
 # while /api/* stayed green. Copy the whole package into the traced tree by
 # hand — the shell resolves the store-hash directory the tracer names.
+# Copy ONLY the styled-jsx package itself: its store dir's node_modules also
+# holds SYMLINKS to peer packages (react, @babel/*) whose targets sit outside
+# this subtree — `cp -L` over those dies on the first dangling link.
 RUN set -eux; \
     for dir in /app/node_modules/.pnpm/styled-jsx@*; do \
-        dest="/app/apps/studio/.next/standalone/node_modules/.pnpm/$(basename "$dir")"; \
+        dest="/app/apps/studio/.next/standalone/node_modules/.pnpm/$(basename "$dir")/node_modules"; \
         mkdir -p "$dest"; \
-        cp -rL "$dir/node_modules" "$dest/"; \
+        cp -rL "$dir/node_modules/styled-jsx" "$dest/"; \
     done
 
 # Copy only compiled code and dependencies
