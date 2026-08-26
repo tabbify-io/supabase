@@ -68,6 +68,18 @@ ENV NEXT_PUBLIC_GOTRUE_URL=$NEXT_PUBLIC_GOTRUE_URL
 
 RUN pnpm --filter studio exec next build
 
+# The standalone tracer carries styled-jsx's entry stub without the dist/
+# behind it (the `outputFileTracingIncludes` glob in next.config.js did not
+# survive the config composition), so every page render died MODULE_NOT_FOUND
+# while /api/* stayed green. Copy the whole package into the traced tree by
+# hand — the shell resolves the store-hash directory the tracer names.
+RUN set -eux; \
+    for dir in /app/node_modules/.pnpm/styled-jsx@*; do \
+        dest="/app/apps/studio/.next/standalone/node_modules/.pnpm/$(basename "$dir")"; \
+        mkdir -p "$dest"; \
+        cp -rL "$dir/node_modules" "$dest/"; \
+    done
+
 # Copy only compiled code and dependencies
 FROM base AS production
 COPY --from=builder /app/apps/studio/public ./apps/studio/public
