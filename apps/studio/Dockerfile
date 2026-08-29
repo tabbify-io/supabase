@@ -76,11 +76,21 @@ RUN pnpm --filter studio exec next build
 # Copy ONLY the styled-jsx package itself: its store dir's node_modules also
 # holds SYMLINKS to peer packages (react, @babel/*) whose targets sit outside
 # this subtree — `cp -L` over those dies on the first dangling link.
+# And styled-jsx's own runtime dependency `client-only` beside it: the store
+# dir's sibling symlink was (rightly) skipped by the narrow copy above, and
+# whether the tracer hoists its own copy varies build to build — one rebuild
+# rendered pages, the next died `Cannot find module 'client-only'`. Copying it
+# as a sibling makes resolution deterministic: styled-jsx's require walks up
+# into this exact node_modules first.
 RUN set -eux; \
     for dir in /app/node_modules/.pnpm/styled-jsx@*; do \
         dest="/app/apps/studio/.next/standalone/node_modules/.pnpm/$(basename "$dir")/node_modules"; \
         mkdir -p "$dest"; \
         cp -rL "$dir/node_modules/styled-jsx" "$dest/"; \
+        for dep in /app/node_modules/.pnpm/client-only@*; do \
+            rm -rf "$dest/client-only"; \
+            cp -rL "$dep/node_modules/client-only" "$dest/"; \
+        done; \
     done
 
 # Copy only compiled code and dependencies
