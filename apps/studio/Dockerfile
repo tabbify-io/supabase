@@ -66,7 +66,25 @@ ENV NEXT_PUBLIC_SITE_URL=$NEXT_PUBLIC_SITE_URL
 ARG NEXT_PUBLIC_GOTRUE_URL=""
 ENV NEXT_PUBLIC_GOTRUE_URL=$NEXT_PUBLIC_GOTRUE_URL
 
-RUN pnpm --filter studio exec next build
+# Studio's compile outgrows Node's default V8 heap, and when a worker hits it
+# the build dies at whatever stage it had reached. On 23.10 the same ref failed
+# twice on a 12.8 GiB build VM, once at 71 s ("Build failed because of webpack
+# errors") and once at 149 s (ENOENT .next/export-detail.json), and the guest
+# kernel logged no OOM kill. That points at a V8 heap limit, not the VM. Give
+# the heap room well inside the VM.
+ENV NODE_OPTIONS=--max-old-space-size=8192
+ENV NEXT_TELEMETRY_DISABLED=1
+
+# The platform keeps only the last lines of a failed step, and `next build`
+# prints its cause far above them (above, both failures showed only the
+# summary). On failure, print the tail first and the error lines LAST, so the
+# cause is what survives.
+RUN pnpm --filter studio exec next build > /tmp/next-build.log 2>&1 || { \
+      tail -n 30 /tmp/next-build.log; \
+      echo "next build failed; first error lines:"; \
+      grep -nE "FATAL|heap|Error|error|Failed|failed" /tmp/next-build.log | head -n 25; \
+      exit 1; \
+    }; tail -n 15 /tmp/next-build.log
 
 # The standalone tracer carries styled-jsx's entry stub without the dist/
 # behind it (the `outputFileTracingIncludes` glob in next.config.js did not
