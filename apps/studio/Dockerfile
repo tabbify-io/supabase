@@ -116,7 +116,10 @@ FROM base AS production
 COPY --from=builder /app/apps/studio/public ./apps/studio/public
 COPY --from=builder /app/apps/studio/.next/standalone ./
 COPY --from=builder /app/apps/studio/.next/static ./apps/studio/.next/static
+# Writes a deployment's base path and address over the placeholders a prebuilt
+# image carries, then runs node's own entrypoint. A no-op for a source build.
+COPY apps/studio/docker-entrypoint-tabbify.sh /usr/local/bin/
 EXPOSE 3000
-ENTRYPOINT ["docker-entrypoint.sh"]
+ENTRYPOINT ["docker-entrypoint-tabbify.sh"]
 HEALTHCHECK --interval=5s --timeout=5s --retries=3 CMD node -e "fetch('http://localhost:3000/api/platform/profile').then((r) => {if (r.status !== 200) throw new Error(r.status)})"
 CMD ["node", "apps/studio/server.js"]
